@@ -8,33 +8,22 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Entity(name = "customer")
+@Entity(name = "projection")
 @NoArgsConstructor
 @Getter
 @Setter
-public class Customer {
+public class Projection {
 
     @Id
+    @Column(name = "projection_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "customer_id")
     private Integer id;
 
     @Column(nullable = false)
-    private String firstName;
+    private Integer movieId;
 
     @Column(nullable = false)
-    private String lastName;
-
-    @Column(nullable = false)
-    private String email;
-
-    @Column(nullable = false)
-    private String phone;
-
-    @Column(nullable = false)
-    private String umcn;
-
-    private String taxId;
+    private LocalDateTime time;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
