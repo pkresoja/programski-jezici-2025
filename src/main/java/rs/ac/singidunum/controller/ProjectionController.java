@@ -37,7 +37,7 @@ public class ProjectionController {
     }
 
     @PutMapping(path = "/{id}")
-    public Projection update(@PathVariable Integer id ,@RequestBody Projection model) {
+    public Projection update(@PathVariable Integer id, @RequestBody Projection model) {
         return service.updateProjection(id, model);
     }
 

@@ -10,11 +10,11 @@ import java.util.Optional;
 
 @Repository
 public interface ProjectionRepository extends JpaRepository<Projection, Integer> {
-
     List<Projection> findAllByDeletedAtIsNull();
 
     Optional<Projection> findByIdAndDeletedAtIsNull(Integer id);
 
     List<Projection> findAllByMovieIdAndTimeAfterAndDeletedAtIsNull(Integer movieId, LocalDateTime time);
 
+    Boolean existsByIdAndDeletedAtIsNull(Integer id);
 }

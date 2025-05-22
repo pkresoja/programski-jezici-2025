@@ -103,6 +103,7 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/js/global.js"></script>
     <script>
         const table = document.getElementById('table')
         const template = document.getElementById('template')
@@ -112,17 +113,16 @@
 
             const ids = new Set()
             rsp.data.map(p => p.movieId).forEach(id => ids.add(id))
-            const movies = {}
-            for (id of ids) {
-                const mrsp = await axios.get('https://movie.pequla.com/api/movie/' + id)
-                movies[id] = mrsp.data
-            }
+            const movies = await axios.request({
+                url: 'https://movie.pequla.com/api/movie/list',
+                method: 'post',
+                data: Array.from(ids)
+            })
 
             for (projection of rsp.data) {
                     const copy = template.content.cloneNode(true)
                     copy.querySelector('.id').innerText = projection.id
-                    copy.querySelector('.movie').innerText =
-                     movies[projection.movieId] ? movies[projection.movieId].title : projection.movieId
+                    copy.querySelector('.movie').innerText = getMovieTitle(movies,projection)
                     copy.querySelector('.time').innerText =
                         new Date(projection.time).toLocaleString('sr-RS')
                     copy.querySelector('.updated').innerText =

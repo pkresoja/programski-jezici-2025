@@ -70,14 +70,17 @@
                         <i class="fa-solid fa-calendar-days"></i> Projekcija
                     </th>
                     <th scope="col">
+                        <i class="fa-solid fa-film"></i> Film
+                    </th>
+                    <th scope="col">
                         <i class="fa-solid fa-chair"></i> Sedište
                     </th>
-                    <!-- <th scope="col">
+                    <th scope="col">
                         <i class="fa-solid fa-credit-card"></i> Plaćeno
                     </th>
                     <th scope="col">
                         <i class="fa-solid fa-circle-check"></i> Upotrebljeno
-                    </th> -->
+                    </th>
                     <th scope="col">
                         <i class="fa-solid fa-clock-rotate-left"></i> Izmenjeno
                     </th>
@@ -92,8 +95,12 @@
     <template id="template">
         <tr>
             <th class="id" role="row"></th>
-            <td class="movie"></td>
+            <td class="customer"></td>
             <td class="time"></td>
+            <td class="movie"></td>
+            <td class="seat"></td>
+            <td class="paid"></td>
+            <td class="used"></td>
             <td class="updated"></td>
             <td>
                 <div class="btn-group">
@@ -112,40 +119,43 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/js/global.js"></script>
     <script>
         const table = document.getElementById('table')
         const template = document.getElementById('template')
 
         async function loadData() {
-            const rsp = await axios.get('/api/projection')
+            const rsp = await axios.get('/api/ticket')
 
             const ids = new Set()
-            rsp.data.map(p => p.movieId).forEach(id => ids.add(id))
-            const movies = {}
-            for (id of ids) {
-                const mrsp = await axios.get('https://movie.pequla.com/api/movie/' + id)
-                movies[id] = mrsp.data
-            }
+            rsp.data.map(t => t.projection.movieId).forEach(id => ids.add(id))
+            const movies = await axios.request({
+                url: 'https://movie.pequla.com/api/movie/list',
+                method: 'post',
+                data: Array.from(ids)
+            })
 
-            for (projection of rsp.data) {
-                    const copy = template.content.cloneNode(true)
-                    copy.querySelector('.id').innerText = projection.id
-                    copy.querySelector('.movie').innerText =
-                     movies[projection.movieId] ? movies[projection.movieId].title : projection.movieId
-                    copy.querySelector('.time').innerText =
-                        new Date(projection.time).toLocaleString('sr-RS')
-                    copy.querySelector('.updated').innerText =
-                        new Date(projection.updatedAt ?? projection.createdAt).toLocaleString('sr-RS')
-                    copy.querySelector('.edit').href = '/edit/projection.html?id=' + projection.id
-                    copy.querySelector('.remove').addEventListener('click', () => {
-                        if (!confirm(`Da li sigurno želite da obrišete ${projection.time} ${projection.id}?`)) return
-                        axios.request({
-                            url: `/api/projection/${projection.id}`,
-                            method: 'delete'
-                        }).then(rsp => window.location.reload())
-                    })
-                    table.appendChild(copy)
-                }
+            for (ticket of rsp.data) {
+                const copy = template.content.cloneNode(true)
+                copy.querySelector('.id').innerText = ticket.id
+                copy.querySelector('.movie').innerText = getMovieTitle(movies,ticket.projection)
+                copy.querySelector('.customer').innerText = ticket.customer.email
+                copy.querySelector('.seat').innerText = ticket.seat
+                copy.querySelector('.time').innerText = formatDate(ticket.projection.time)
+                copy.querySelector('.paid').innerText = formatDate(ticket.paidAt)
+                copy.querySelector('.used').innerText = formatDate(ticket.usedAt)
+                copy.querySelector('.updated').innerText =
+                    new Date(ticket.updatedAt ?? ticket.createdAt).toLocaleString('sr-RS')
+                copy.querySelector('.edit').href = '/edit/ticket.html?id=' + ticket.id
+                copy.querySelector('.remove').addEventListener('click', () => {
+                    if (!confirm(`Da li sigurno želite da obrišete rezervaciju ${ticket.customer.email} ${ticket.projection.time}?`)) return
+                    axios.request({
+                        url: `/api/ticket/${ticket.id}`,
+                        method: 'delete'
+                    }).then(rsp => window.location.reload())
+                })
+                table.appendChild(copy)
+            }
         }
 
         loadData()
